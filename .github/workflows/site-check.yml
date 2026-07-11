@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   validate:
@@ -57,7 +58,32 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+      - name: Post concise diagnostics to pull request
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          {
+            echo "## World Doctor browser check"
+            echo
+            echo "Tested commit: \`$GITHUB_SHA\`"
+            echo
+            if compgen -G "test-results/*.txt" > /dev/null; then
+              for file in test-results/*.txt; do
+                echo "### $(basename "$file" .txt)"
+                echo '```text'
+                cat "$file"
+                echo '```'
+              done
+            else
+              echo "No browser result file was produced. The test failed before page inspection."
+            fi
+          } > /tmp/pr-comment.md
+          gh pr comment "$PR_NUMBER" --body-file /tmp/pr-comment.md
+
       - name: Print tested commit
+        if: success()
         run: |
           echo "Validated commit: $GITHUB_SHA"
           echo "Branch: $GITHUB_HEAD_REF"
