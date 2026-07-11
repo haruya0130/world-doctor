@@ -19,6 +19,7 @@ const pagePath = "countries/sao-tome-and-principe.html";
 const page = read(pagePath);
 const css = read("css/country.css");
 const countryJs = read("js/country.js");
+const saoTomeJs = read("js/sao-tome.js");
 const debugJs = read("js/page-debug.js");
 
 console.log("[WorldDoctorTest] validating Sao Tome and Principe page");
@@ -31,13 +32,16 @@ assert(page.includes('id="prologue"'), "prologue section exists");
 assert(page.includes('id="chapters"'), "chapter section exists");
 assert(page.includes('id="exam"'), "exam section exists");
 assert(page.includes(".reveal { opacity: 1 !important; transform: none !important; }"), "critical fail-open CSS keeps content visible without JavaScript");
-assert(page.includes("../js/page-debug.js"), "dedicated page loads the debug logger before runtime code");
-assert(page.indexOf("../js/page-debug.js") < page.indexOf("../js/country.js"), "debug logger executes before country runtime");
+assert(page.includes("../js/page-debug.js"), "dedicated page loads the debug logger");
+assert(page.includes("../js/sao-tome.js"), "dedicated page loads its isolated runtime");
+assert(page.indexOf("../js/page-debug.js") < page.indexOf("../js/sao-tome.js"), "debug logger executes before the Sao Tome runtime");
+assert(!page.includes("../js/country.js"), "dedicated page does not load the destructive generic runtime");
 assert(debugJs.includes("render.check"), "runtime debug log includes render self-test");
 assert(debugJs.includes("window.error"), "runtime debug log captures browser errors");
 assert(debugJs.includes("bootstrap.started"), "runtime debug log records bootstrap start");
 assert(page.includes('meta name="world-doctor-build"'), "page exposes a build identifier");
 assert(!page.includes("../data/countries-"), "dedicated page does not depend on shared country-data files");
+assert(!saoTomeJs.includes('setText("[data-country-code]"'), "dedicated runtime cannot overwrite the body through a broad data selector");
 
 const assetRegex = /(?:src|href)="([^"?#]+)(?:[?#][^"]*)?"/g;
 const assets = [...page.matchAll(assetRegex)]
@@ -56,6 +60,7 @@ const scripts = [
   "data/countries-4a.js",
   "data/countries-4b.js",
   "js/country.js",
+  "js/sao-tome.js",
   "js/page-debug.js"
 ];
 
@@ -95,8 +100,8 @@ assert(missingPages.length === 0, `all country HTML files exist (missing: ${miss
 if (missingPages.length) console.error("[WorldDoctorTest] missing pages", missingPages);
 
 assert(!css.includes("display:none!important"), "country CSS does not globally force the page to display:none");
-assert(countryJs.includes("staticCountry"), "country runtime has static-data fallback");
-assert(countryJs.includes("Array.isArray(window.COUNTRIES)"), "country runtime guards optional shared data");
+assert(countryJs.includes("staticCountry"), "generic country runtime still has static-data fallback");
+assert(countryJs.includes("Array.isArray(window.COUNTRIES)"), "generic country runtime guards optional shared data");
 
 console.log(notes.join("\n"));
 
@@ -107,4 +112,4 @@ if (failures.length) {
 }
 
 console.log(`\n[WorldDoctorTest] OK: ${notes.length} checks passed`);
-console.log("[WorldDoctorTest] Fail-open scenario confirmed: static content and critical CSS do not depend on shared data or runtime animation initialization.");
+console.log("[WorldDoctorTest] Fail-open scenario confirmed: static content and critical CSS do not depend on shared data or generic runtime initialization.");
