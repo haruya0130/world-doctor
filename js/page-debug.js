@@ -48,7 +48,7 @@
         "padding:12px", "color:#d9f7e8", "background:rgba(8,25,40,.96)",
         "border:1px solid #4cc38a", "border-radius:12px", "box-shadow:0 12px 35px rgba(0,0,0,.35)",
         "font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace",
-        "white-space:pre-wrap"
+        "white-space:pre-wrap", "overflow-wrap:anywhere", "word-break:break-word"
       ].join(";");
       document.body.appendChild(panel);
     }
