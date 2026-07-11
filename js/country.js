@@ -159,6 +159,9 @@
 
   const setText = (selector, value) => {
     document.querySelectorAll(selector).forEach(element => {
+      // The dedicated page stores its lookup key on <body data-country-code="ST">.
+      // Never replace body.textContent while filling visible country-code fields.
+      if (element === body) return;
       element.textContent = value;
     });
   };
