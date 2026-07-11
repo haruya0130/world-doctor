@@ -4,17 +4,132 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="物語を読みながらサントメ・プリンシペ博士になる学習コース">
+  <meta name="world-doctor-build" content="20260711-sao-tome-fix-1">
   <title>サントメ・プリンシペ博士コース | 世界博士</title>
-  <link rel="stylesheet" href="../css/country.css">
-  <script src="../data/countries-1.js" defer></script>
-  <script src="../data/countries-2.js" defer></script>
-  <script src="../data/countries-3a.js" defer></script>
-  <script src="../data/countries-3b.js" defer></script>
-  <script src="../data/countries-4a.js" defer></script>
-  <script src="../data/countries-4b.js" defer></script>
-  <script src="../js/country.js" defer></script>
+  <link rel="stylesheet" href="../css/country.css?v=20260711-sao-tome-fix-1">
+  <style id="critical-render-safety">
+    /* Fail-open: JavaScriptや共有データが失敗しても本文を透明にしない */
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .reveal.reveal-pending { opacity: 0 !important; transform: translateY(24px) !important; }
+    .reveal.reveal-pending.is-visible { opacity: 1 !important; transform: none !important; }
+    #wd-debug-panel {
+      position: fixed; right: 10px; bottom: 10px; z-index: 9999;
+      width: min(440px, calc(100vw - 20px)); max-height: 46vh; overflow: auto;
+      padding: 12px; color: #d9f7e8; background: rgba(8, 25, 40, .96);
+      border: 1px solid #4cc38a; border-radius: 12px; box-shadow: 0 12px 35px rgba(0,0,0,.35);
+      font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+  <script>
+    (() => {
+      "use strict";
+      const BUILD = "20260711-sao-tome-fix-1";
+      const logs = [];
+      const debugEnabled = new URLSearchParams(location.search).has("debug");
+
+      const safeData = value => {
+        try { return JSON.parse(JSON.stringify(value)); }
+        catch { return String(value); }
+      };
+
+      const renderPanel = () => {
+        if (!debugEnabled || !document.body) return;
+        let panel = document.getElementById("wd-debug-panel");
+        if (!panel) {
+          panel = document.createElement("pre");
+          panel.id = "wd-debug-panel";
+          panel.setAttribute("role", "status");
+          panel.setAttribute("aria-live", "polite");
+          document.body.appendChild(panel);
+        }
+        panel.textContent = [
+          `World Doctor Debug | ${BUILD}`,
+          ...logs.slice(-16).map(item => `${item.time} [${item.level}] ${item.event} ${JSON.stringify(item.data)}`)
+        ].join("\n");
+      };
+
+      const log = (level, event, data = {}) => {
+        const item = {
+          time: new Date().toISOString(),
+          level,
+          event,
+          data: safeData(data)
+        };
+        logs.push(item);
+        window.__WORLD_DOCTOR_DEBUG__ = { build: BUILD, logs };
+        try { sessionStorage.setItem("worldDoctorDebugLast", JSON.stringify(window.__WORLD_DOCTOR_DEBUG__)); } catch {}
+        const method = level === "error" ? "error" : level === "warn" ? "warn" : "info";
+        console[method](`[WorldDoctor:${BUILD}] ${event}`, item.data);
+        renderPanel();
+      };
+
+      window.WorldDoctorLog = log;
+      window.addEventListener("error", event => {
+        log("error", "window.error", {
+          message: event.message,
+          source: event.filename,
+          line: event.lineno,
+          column: event.colno
+        });
+      });
+      window.addEventListener("unhandledrejection", event => {
+        log("error", "promise.unhandled", { reason: String(event.reason) });
+      });
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const checks = {
+          topbar: Boolean(document.querySelector(".topbar")),
+          heading: document.querySelector("h1")?.textContent?.trim() || "",
+          hero: Boolean(document.querySelector(".country-hero")),
+          overview: Boolean(document.getElementById("overview")),
+          prologue: Boolean(document.getElementById("prologue")),
+          chapters: Boolean(document.getElementById("chapters")),
+          exam: Boolean(document.getElementById("exam")),
+          revealElements: document.querySelectorAll(".reveal").length,
+          countryDataCount: Array.isArray(window.COUNTRIES) ? window.COUNTRIES.length : 0
+        };
+        log("info", "dom.ready", checks);
+
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const hero = document.querySelector(".hero-content");
+          const heading = document.querySelector("h1");
+          const heroStyle = hero ? getComputedStyle(hero) : null;
+          const headingRect = heading?.getBoundingClientRect();
+          const renderChecks = {
+            heroDisplay: heroStyle?.display || "missing",
+            heroOpacity: heroStyle?.opacity || "missing",
+            headingWidth: Math.round(headingRect?.width || 0),
+            headingHeight: Math.round(headingRect?.height || 0),
+            bodyHeight: document.body.scrollHeight,
+            cssLoaded: [...document.styleSheets].some(sheet => String(sheet.href || "").includes("country.css"))
+          };
+          const ok = checks.topbar && checks.hero && checks.prologue && checks.chapters &&
+            Number(renderChecks.heroOpacity) > 0 && renderChecks.headingWidth > 0 && renderChecks.headingHeight > 0;
+          document.documentElement.dataset.renderStatus = ok ? "ok" : "error";
+          log(ok ? "info" : "error", "render.check", { ok, ...renderChecks });
+        }));
+      });
+
+      window.addEventListener("load", () => {
+        const resources = performance.getEntriesByType("resource")
+          .filter(item => /country\.css|countries-|country\.js/.test(item.name))
+          .map(item => ({ name: item.name.split("/").pop(), duration: Math.round(item.duration), bytes: item.transferSize || 0 }));
+        log("info", "window.load", { resources, readyState: document.readyState });
+      });
+
+      log("info", "bootstrap.started", { url: location.href, userAgent: navigator.userAgent });
+    })();
+  </script>
+  <script src="../data/countries-1.js?v=20260711-sao-tome-fix-1" defer></script>
+  <script src="../data/countries-2.js?v=20260711-sao-tome-fix-1" defer></script>
+  <script src="../data/countries-3a.js?v=20260711-sao-tome-fix-1" defer></script>
+  <script src="../data/countries-3b.js?v=20260711-sao-tome-fix-1" defer></script>
+  <script src="../data/countries-4a.js?v=20260711-sao-tome-fix-1" defer></script>
+  <script src="../data/countries-4b.js?v=20260711-sao-tome-fix-1" defer></script>
+  <script src="../js/country.js?v=20260711-sao-tome-fix-1" defer></script>
 </head>
-<body data-country-code="ST">
+<body data-country-code="ST" data-build="20260711-sao-tome-fix-1">
   <header class="topbar">
     <a class="brand" href="../index.html" aria-label="世界博士トップへ戻る">🌍 <span>世界博士</span></a>
     <div class="country-nav-title">サントメ・プリンシペ</div>
@@ -33,7 +148,7 @@
       <div class="hero-content reveal">
         <div class="flag-orb" aria-label="サントメ・プリンシペの国旗と国コード">
           <div>
-            <div class="flag-emoji" data-country-flag aria-hidden="true"></div>
+            <div class="flag-emoji" data-country-flag aria-hidden="true">🇸🇹</div>
             <div class="flag-code">ST</div>
           </div>
         </div>
@@ -54,7 +169,7 @@
         <div class="basic-grid">
           <div class="info-card"><strong>国名</strong><span>サントメ・プリンシペ</span></div>
           <div class="info-card"><strong>国コード</strong><span>ST</span></div>
-          <div class="info-card"><strong>地域</strong><span>アフリカ・ギニア湾</span></div>
+          <div class="info-card"><strong>地域</strong><span data-country-continent>アフリカ・ギニア湾</span></div>
           <div class="info-card"><strong>コース構成</strong><span>全20章＋博士試験</span></div>
         </div>
       </section>
@@ -133,7 +248,7 @@
       <section id="exam" class="panel reveal" aria-labelledby="exam-heading">
         <div class="exam-card">
           <div>
-            <h3 id="exam-heading">サントメ・プリンシペ博士試験</h3>
+            <h2 id="exam-heading">サントメ・プリンシペ博士試験</h2>
             <p>やさしい問題から、答えが一つではない大統領レベルまで挑戦します。</p>
           </div>
           <div class="exam-icon" aria-hidden="true">📝</div>
