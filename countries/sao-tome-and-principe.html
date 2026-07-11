@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="物語を読みながらサントメ・プリンシペ博士になる学習コース">
+  <title>サントメ・プリンシペ博士コース | 世界博士</title>
+  <link rel="stylesheet" href="../css/country.css">
+  <script src="../data/countries-1.js" defer></script>
+  <script src="../data/countries-2.js" defer></script>
+  <script src="../data/countries-3a.js" defer></script>
+  <script src="../data/countries-3b.js" defer></script>
+  <script src="../data/countries-4a.js" defer></script>
+  <script src="../data/countries-4b.js" defer></script>
+  <script src="../js/country.js" defer></script>
+</head>
+<body data-country-code="ST">
+  <header class="topbar">
+    <a class="brand" href="../index.html" aria-label="世界博士トップへ戻る">🌍 <span>世界博士</span></a>
+    <div class="country-nav-title">サントメ・プリンシペ</div>
+    <button id="menu-button" class="menu-button" type="button" aria-expanded="false" aria-controls="nav-menu" aria-label="メニューを開く">☰</button>
+    <nav id="nav-menu" class="nav-menu" aria-label="サントメ・プリンシペ博士コース">
+      <a href="#overview">基本情報</a>
+      <a href="#prologue">プロローグ</a>
+      <a href="#chapters">章一覧</a>
+      <a href="#exam">博士試験</a>
+      <a href="../index.html">世界地図へ戻る</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="country-hero">
+      <div class="hero-content reveal">
+        <div class="flag-orb" aria-label="サントメ・プリンシペの国旗と国コード">
+          <div>
+            <div class="flag-emoji" data-country-flag aria-hidden="true"></div>
+            <div class="flag-code">ST</div>
+          </div>
+        </div>
+        <p class="eyebrow">STORY ADVENTURE COURSE</p>
+        <h1>サントメ・プリンシペ博士</h1>
+        <p class="country-en" lang="en">Sao Tome and Principe</p>
+        <p class="hero-copy">カカオの香りがする不思議な地図を開き、赤道近くの二つの島へ。物語を読みながら、国の過去・現在・未来を探究します。</p>
+        <div class="hero-actions">
+          <a id="start-course" class="primary-button" href="#prologue">物語を始める ✨</a>
+          <a class="secondary-button" href="../index.html">← 世界地図へ戻る</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="content-wrap">
+      <section id="overview" class="panel reveal" aria-labelledby="overview-heading">
+        <h2 id="overview-heading">冒険の基本情報</h2>
+        <div class="basic-grid">
+          <div class="info-card"><strong>国名</strong><span>サントメ・プリンシペ</span></div>
+          <div class="info-card"><strong>国コード</strong><span>ST</span></div>
+          <div class="info-card"><strong>地域</strong><span>アフリカ・ギニア湾</span></div>
+          <div class="info-card"><strong>コース構成</strong><span>全20章＋博士試験</span></div>
+        </div>
+      </section>
+
+      <section id="progress" class="panel progress-panel reveal" aria-labelledby="progress-heading">
+        <div class="progress-row">
+          <div>
+            <h2 id="progress-heading">現在の学習進捗</h2>
+            <p>状態：<strong id="country-progress-label">未挑戦</strong></p>
+          </div>
+          <span aria-hidden="true">🎓</span>
+        </div>
+        <div id="country-progress-track" class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="country-progress-fill" class="progress-fill"></div>
+        </div>
+        <div class="progress-actions">
+          <button class="small-button" type="button" data-set-progress="learning">学習中にする</button>
+          <button class="small-button complete" type="button" data-set-progress="completed">博士認定にする</button>
+          <button class="small-button" type="button" data-set-progress="not-started">進捗をリセット</button>
+        </div>
+      </section>
+
+      <section id="prologue" class="story-card reveal" aria-labelledby="prologue-heading">
+        <p class="eyebrow">PROLOGUE</p>
+        <h2 id="prologue-heading">地図から消えそうな、小さな二つの島</h2>
+        <p>放課後の図書室で、ハルは古びた世界地図を見つけた。アフリカ大陸の左側。青い海の中に、針の先ほどの二つの島がある。</p>
+        <div class="dialogue">
+          <strong>ハル：</strong>「サン……トメ？　プリン……シペ？　こんな国、初めて見た」<br>
+          <strong>地球儀：</strong>「知らない国は、まだ開いていない物語だよ」
+        </div>
+        <p>ハルが島に指を置いた瞬間、甘くて少し苦いカカオの香りが広がった。地図の海が波打ち、教室の床が青空へ変わる。</p>
+        <p><strong>次の謎：</strong>二つの島は、どうして海の真ん中に生まれたのだろう？</p>
+        <div class="chapter-nav">
+          <a class="primary-button" href="#chapters">章を選ぶ →</a>
+        </div>
+      </section>
+
+      <section id="chapters" class="panel reveal" aria-labelledby="chapters-heading">
+        <h2 id="chapters-heading">章を選んで冒険する</h2>
+        <div class="chapter-list">
+          <details class="chapter" open>
+            <summary>プロローグ</summary>
+            <div class="chapter-body"><p>不思議な地図と古いカカオ豆に導かれ、ハルの旅が始まります。</p></div>
+          </details>
+          <details class="chapter">
+            <summary>第1章〜第4章：島・火山・砂糖・カカオ</summary>
+            <div class="chapter-body"><h3>第1部</h3><p>二つの島の位置と誕生、大航海時代、砂糖農園、カカオ産業を原因と結果のつながりで学びます。</p><p>本文は順次追加予定です。</p></div>
+          </details>
+          <details class="chapter">
+            <summary>第5章〜第8章：独立・政治・暮らし・言葉</summary>
+            <div class="chapter-body"><h3>第2部</h3><p>自由を求めた歴史、国の仕組み、島の小学生の一日、多様な言葉と文化を旅します。</p><p>本文は順次追加予定です。</p></div>
+          </details>
+          <details class="chapter">
+            <summary>第9章〜第12章：自然・赤道・経済・停電</summary>
+            <div class="chapter-body"><h3>第3部</h3><p>固有種、赤道、国のお財布、電力や生活インフラの課題を探究します。</p><p>本文は順次追加予定です。</p></div>
+          </details>
+          <details class="chapter">
+            <summary>第13章〜第16章：未来・政策・日本・世界</summary>
+            <div class="chapter-body"><h3>第4部</h3><p>小国の強み、一日大統領、日本との関係、国際社会での声を考えます。</p><p>本文は順次追加予定です。</p></div>
+          </details>
+          <details class="chapter">
+            <summary>第17章〜第20章：豆知識・誤解・試験・帰国</summary>
+            <div class="chapter-body"><h3>第5部</h3><p>思い込みをひっくり返し、博士試験に挑戦し、日本の日常を新しい目で見直します。</p><p>本文は順次追加予定です。</p></div>
+          </details>
+          <details class="chapter">
+            <summary>自由研究アイデア</summary>
+            <div class="chapter-body"><p>赤道模型、火山島実験、カカオの流れ、停電時の生活など、実際に取り組める研究を追加します。</p></div>
+          </details>
+          <details class="chapter">
+            <summary>博士認定証</summary>
+            <div class="chapter-body"><p>全章と博士試験を終えたら、サントメ・プリンシペ博士の認定証を表示できる設計です。</p></div>
+          </details>
+        </div>
+      </section>
+
+      <section id="exam" class="panel reveal" aria-labelledby="exam-heading">
+        <div class="exam-card">
+          <div>
+            <h3 id="exam-heading">サントメ・プリンシペ博士試験</h3>
+            <p>やさしい問題から、答えが一つではない大統領レベルまで挑戦します。</p>
+          </div>
+          <div class="exam-icon" aria-hidden="true">📝</div>
+        </div>
+        <div class="chapter-nav">
+          <button class="primary-button" type="button" data-set-progress="completed">試作版を修了して博士認定する</button>
+          <a class="secondary-button" href="#chapters">章一覧へ戻る</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>🌱 小さな島を深く知ると、世界の仕組みが見えてくる。</p>
+  </footer>
+</body>
+</html>
