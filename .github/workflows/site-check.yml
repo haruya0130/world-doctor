@@ -1,0 +1,30 @@
+name: World Doctor site check
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate HTML, assets, data and fail-open rendering
+        run: node tests/validate-site.mjs
+
+      - name: Print tested commit
+        run: |
+          echo "Validated commit: $GITHUB_SHA"
+          echo "Branch: $GITHUB_HEAD_REF"
