@@ -18,10 +18,9 @@ const runScenario = async ({ name, blockRuntime = false }) => {
   const consoleEntries = [];
   const pageErrors = [];
   const requestFailures = [];
+  let renderStatusWaitTimedOut = false;
 
-  page.on("console", message => {
-    consoleEntries.push({ type: message.type(), text: message.text() });
-  });
+  page.on("console", message => consoleEntries.push({ type: message.type(), text: message.text() }));
   page.on("pageerror", error => pageErrors.push(error.message));
   page.on("requestfailed", request => {
     requestFailures.push({ url: request.url(), error: request.failure()?.errorText || "unknown" });
@@ -33,8 +32,12 @@ const runScenario = async ({ name, blockRuntime = false }) => {
   }
 
   await page.waitForSelector("h1", { state: "visible", timeout: 10000 });
-  await page.waitForFunction(() => Boolean(document.documentElement.dataset.renderStatus), null, { timeout: 7000 });
-  await page.waitForTimeout(300);
+  try {
+    await page.waitForFunction(() => Boolean(document.documentElement.dataset.renderStatus), null, { timeout: 7000 });
+  } catch {
+    renderStatusWaitTimedOut = true;
+  }
+  await page.waitForTimeout(500);
 
   const report = await page.evaluate(() => {
     const hero = document.querySelector(".hero-content");
@@ -77,6 +80,7 @@ const runScenario = async ({ name, blockRuntime = false }) => {
   if (report.bodyWidth > report.viewportWidth + 2) failures.push(`horizontal overflow detected (${report.bodyWidth} > ${report.viewportWidth})`);
   if (Object.values(report.sections).some(value => !value)) failures.push("one or more required sections are missing");
   if (report.renderStatus !== "ok") failures.push(`runtime render self-test is ${report.renderStatus}`);
+  if (renderStatusWaitTimedOut) failures.push("runtime render status was not produced within 7 seconds");
 
   const unexpectedErrors = pageErrors.filter(error => {
     if (!blockRuntime) return true;
@@ -92,6 +96,7 @@ const runScenario = async ({ name, blockRuntime = false }) => {
     blockRuntime,
     ok: failures.length === 0,
     failures,
+    renderStatusWaitTimedOut,
     report,
     pageErrors,
     requestFailures,
@@ -100,8 +105,18 @@ const runScenario = async ({ name, blockRuntime = false }) => {
   };
 
   fs.writeFileSync(`${outputDir}/${name}.json`, JSON.stringify(result, null, 2));
+  fs.writeFileSync(`${outputDir}/${name}.txt`, [
+    `${name}: ${result.ok ? "PASS" : "FAIL"}`,
+    `failures=${failures.join(" | ") || "none"}`,
+    `renderStatus=${report.renderStatus}`,
+    `hero=${JSON.stringify(report.hero)}`,
+    `body=${report.bodyWidth}x${report.bodyHeight} viewport=${report.viewportWidth}`,
+    `pageErrors=${JSON.stringify(pageErrors)}`,
+    `requestFailures=${JSON.stringify(requestFailures)}`
+  ].join("\n"));
+
   console.log(`[WorldDoctorBrowserTest] ${name}: ${result.ok ? "PASS" : "FAIL"}`);
-  console.log(JSON.stringify(result, null, 2));
+  console.log(fs.readFileSync(`${outputDir}/${name}.txt`, "utf8"));
 
   await browser.close();
   if (!result.ok) throw new Error(`${name}: ${failures.join("; ")}`);
