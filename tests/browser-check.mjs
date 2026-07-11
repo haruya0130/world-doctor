@@ -6,12 +6,12 @@ const target = `${baseUrl}/countries/sao-tome-and-principe.html?debug=1`;
 const outputDir = "test-results";
 fs.mkdirSync(outputDir, { recursive: true });
 
-const runScenario = async ({ name, blockCountryData = false }) => {
+const runScenario = async ({ name, blockRuntime = false }) => {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
 
-  if (blockCountryData) {
-    await context.route("**/data/countries-*.js*", route => route.abort("failed"));
+  if (blockRuntime) {
+    await context.route("**/js/country.js*", route => route.abort("failed"));
   }
 
   const page = await context.newPage();
@@ -33,7 +33,8 @@ const runScenario = async ({ name, blockCountryData = false }) => {
   }
 
   await page.waitForSelector("h1", { state: "visible", timeout: 10000 });
-  await page.waitForTimeout(700);
+  await page.waitForFunction(() => Boolean(document.documentElement.dataset.renderStatus), null, { timeout: 7000 });
+  await page.waitForTimeout(300);
 
   const report = await page.evaluate(() => {
     const hero = document.querySelector(".hero-content");
@@ -77,7 +78,10 @@ const runScenario = async ({ name, blockCountryData = false }) => {
   if (Object.values(report.sections).some(value => !value)) failures.push("one or more required sections are missing");
   if (report.renderStatus !== "ok") failures.push(`runtime render self-test is ${report.renderStatus}`);
 
-  const unexpectedErrors = pageErrors.filter(error => !blockCountryData || !/countries-/i.test(error));
+  const unexpectedErrors = pageErrors.filter(error => {
+    if (!blockRuntime) return true;
+    return !/country\.js/i.test(error);
+  });
   if (unexpectedErrors.length) failures.push(`page errors: ${unexpectedErrors.join(" | ")}`);
 
   const screenshotPath = `${outputDir}/${name}.png`;
@@ -85,7 +89,7 @@ const runScenario = async ({ name, blockCountryData = false }) => {
 
   const result = {
     name,
-    blockCountryData,
+    blockRuntime,
     ok: failures.length === 0,
     failures,
     report,
@@ -104,5 +108,5 @@ const runScenario = async ({ name, blockCountryData = false }) => {
 };
 
 await runScenario({ name: "sao-tome-normal" });
-await runScenario({ name: "sao-tome-data-blocked", blockCountryData: true });
+await runScenario({ name: "sao-tome-runtime-blocked", blockRuntime: true });
 console.log("[WorldDoctorBrowserTest] all browser scenarios passed");
