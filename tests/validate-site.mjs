@@ -19,6 +19,7 @@ const pagePath = "countries/sao-tome-and-principe.html";
 const page = read(pagePath);
 const css = read("css/country.css");
 const countryJs = read("js/country.js");
+const debugJs = read("js/page-debug.js");
 
 console.log("[WorldDoctorTest] validating Sao Tome and Principe page");
 
@@ -30,10 +31,13 @@ assert(page.includes('id="prologue"'), "prologue section exists");
 assert(page.includes('id="chapters"'), "chapter section exists");
 assert(page.includes('id="exam"'), "exam section exists");
 assert(page.includes(".reveal { opacity: 1 !important; transform: none !important; }"), "critical fail-open CSS keeps content visible without JavaScript");
-assert(page.includes("render.check"), "runtime debug log includes render self-test");
-assert(page.includes("window.error"), "runtime debug log captures browser errors");
-assert(page.includes("bootstrap.started"), "runtime debug log records bootstrap start");
+assert(page.includes("../js/page-debug.js"), "dedicated page loads the debug logger before runtime code");
+assert(page.indexOf("../js/page-debug.js") < page.indexOf("../js/country.js"), "debug logger executes before country runtime");
+assert(debugJs.includes("render.check"), "runtime debug log includes render self-test");
+assert(debugJs.includes("window.error"), "runtime debug log captures browser errors");
+assert(debugJs.includes("bootstrap.started"), "runtime debug log records bootstrap start");
 assert(page.includes('meta name="world-doctor-build"'), "page exposes a build identifier");
+assert(!page.includes("../data/countries-"), "dedicated page does not depend on shared country-data files");
 
 const assetRegex = /(?:src|href)="([^"?#]+)(?:[?#][^"]*)?"/g;
 const assets = [...page.matchAll(assetRegex)]
@@ -53,7 +57,7 @@ const scripts = [
   "data/countries-4b.js",
   "js/country.js",
   "js/page-debug.js"
-].filter(exists);
+];
 
 for (const script of scripts) {
   try {
@@ -67,7 +71,7 @@ for (const script of scripts) {
 for (const inline of [...page.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(Boolean)) {
   try {
     new vm.Script(inline, { filename: `${pagePath}:inline` });
-    assert(true, "inline debug script syntax is valid");
+    assert(true, "inline script syntax is valid");
   } catch (error) {
     failures.push(`inline script syntax error: ${error.message}`);
   }
