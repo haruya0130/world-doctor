@@ -4,15 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="世界195か国を冒険しながら学び、国の博士を目指す学習サイト">
+  <meta name="theme-color" content="#eaf7ff">
   <title>世界博士 | 世界195か国を冒険しよう</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260711-flags-search-ui-1">
   <script src="data/countries-1.js" defer></script>
   <script src="data/countries-2.js" defer></script>
   <script src="data/countries-3a.js" defer></script>
   <script src="data/countries-3b.js" defer></script>
   <script src="data/countries-4a.js" defer></script>
   <script src="data/countries-4b.js" defer></script>
-  <script src="js/main.js" defer></script>
+  <script src="js/main.js?v=20260711-flags-search-ui-1" defer></script>
 </head>
 <body>
   <div class="sky-decoration" aria-hidden="true">
@@ -48,17 +49,20 @@
         <div>
           <p class="eyebrow">CHOOSE YOUR DESTINATION</p>
           <h2 id="country-heading">どの国を冒険する？</h2>
+          <p class="section-lead">国旗を眺めながら、気になる国を選んでみよう。</p>
         </div>
         <div class="compass" aria-hidden="true">🧭</div>
       </div>
 
       <div class="toolbar" aria-label="国の検索と絞り込み">
         <label class="search-box" for="country-search">
-          <span aria-hidden="true">🔎</span>
+          <span class="search-icon" aria-hidden="true">🔎</span>
           <span class="sr-only">国を検索</span>
-          <input id="country-search" type="search" autocomplete="off"
-                 placeholder="日本語・英語・国コードで検索">
+          <input id="country-search" type="search" autocomplete="off" inputmode="search" spellcheck="false"
+                 placeholder="国名（ひらがな・カタカナ・英語）や国コードで検索">
+          <kbd aria-hidden="true">⌘ K</kbd>
         </label>
+        <p class="search-help">例：あふがにすたん、アメリカ、Japan、JP</p>
 
         <div id="continent-filters" class="filter-group" role="group" aria-label="大陸で絞り込む">
           <button class="filter-button is-active" type="button" data-continent="すべて" aria-pressed="true">すべて</button>
@@ -80,7 +84,7 @@
       <div id="empty-state" class="empty-state" hidden>
         <div aria-hidden="true">🗺️</div>
         <h3>条件に合う国が見つかりませんでした</h3>
-        <p>国名の一部や、2文字の国コードで探してみてね。</p>
+        <p>ひらがな・カタカナ・英語名や、2文字の国コードで探してみてね。</p>
       </div>
     </section>
   </main>
