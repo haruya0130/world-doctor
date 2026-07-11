@@ -1,0 +1,89 @@
+name: World Doctor site check
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate HTML, assets, data and fail-open structure
+        run: node tests/validate-site.mjs
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Start local static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/world-doctor-server.log 2>&1 &
+          echo $! > /tmp/world-doctor-server.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/countries/sao-tome-and-principe.html > /dev/null; then
+              echo "Local server is ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/world-doctor-server.log
+          exit 1
+
+      - name: Run real-browser display and fail-open checks
+        env:
+          TEST_BASE_URL: http://127.0.0.1:4173
+        run: node tests/browser-check.mjs
+
+      - name: Upload screenshots and debug reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sao-tome-render-check
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Post concise diagnostics to pull request
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          {
+            echo "## World Doctor browser check"
+            echo
+            echo "Tested commit: \`$GITHUB_SHA\`"
+            echo
+            if compgen -G "test-results/*.txt" > /dev/null; then
+              for file in test-results/*.txt; do
+                echo "### $(basename "$file" .txt)"
+                echo '```text'
+                cat "$file"
+                echo '```'
+              done
+            else
+              echo "No browser result file was produced. The test failed before page inspection."
+            fi
+          } > /tmp/pr-comment.md
+          gh pr comment "$PR_NUMBER" --body-file /tmp/pr-comment.md
+
+      - name: Print tested commit
+        if: success()
+        run: |
+          echo "Validated commit: $GITHUB_SHA"
+          echo "Branch: $GITHUB_HEAD_REF"

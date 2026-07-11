@@ -4,17 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="物語を読みながらサントメ・プリンシペ博士になる学習コース">
+  <meta name="world-doctor-build" content="20260711-sao-tome-fix-3">
   <title>サントメ・プリンシペ博士コース | 世界博士</title>
-  <link rel="stylesheet" href="../css/country.css">
-  <script src="../data/countries-1.js" defer></script>
-  <script src="../data/countries-2.js" defer></script>
-  <script src="../data/countries-3a.js" defer></script>
-  <script src="../data/countries-3b.js" defer></script>
-  <script src="../data/countries-4a.js" defer></script>
-  <script src="../data/countries-4b.js" defer></script>
-  <script src="../js/country.js" defer></script>
+  <link rel="stylesheet" href="../css/country.css?v=20260711-sao-tome-fix-3">
+  <style id="critical-render-safety">
+    /* Fail-open: JavaScriptや共有データが失敗しても本文を透明にしない。 */
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .reveal.reveal-pending { opacity: 0 !important; transform: translateY(24px) !important; }
+    .reveal.reveal-pending.is-visible { opacity: 1 !important; transform: none !important; }
+  </style>
+  <script src="../js/page-debug.js?v=20260711-sao-tome-fix-3" defer></script>
+  <script src="../js/sao-tome.js?v=20260711-sao-tome-fix-3" defer></script>
 </head>
-<body data-country-code="ST">
+<body data-country-code="ST" data-build="20260711-sao-tome-fix-3">
   <header class="topbar">
     <a class="brand" href="../index.html" aria-label="世界博士トップへ戻る">🌍 <span>世界博士</span></a>
     <div class="country-nav-title">サントメ・プリンシペ</div>
@@ -33,7 +35,7 @@
       <div class="hero-content reveal">
         <div class="flag-orb" aria-label="サントメ・プリンシペの国旗と国コード">
           <div>
-            <div class="flag-emoji" data-country-flag aria-hidden="true"></div>
+            <div class="flag-emoji" data-country-flag aria-hidden="true">🇸🇹</div>
             <div class="flag-code">ST</div>
           </div>
         </div>
@@ -54,7 +56,7 @@
         <div class="basic-grid">
           <div class="info-card"><strong>国名</strong><span>サントメ・プリンシペ</span></div>
           <div class="info-card"><strong>国コード</strong><span>ST</span></div>
-          <div class="info-card"><strong>地域</strong><span>アフリカ・ギニア湾</span></div>
+          <div class="info-card"><strong>地域</strong><span data-country-continent>アフリカ・ギニア湾</span></div>
           <div class="info-card"><strong>コース構成</strong><span>全20章＋博士試験</span></div>
         </div>
       </section>
