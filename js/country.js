@@ -1,17 +1,74 @@
 (() => {
   "use strict";
+
   const STORAGE_KEY = "worldDoctorProgress";
   const body = document.body;
-  const pathSlug = decodeURIComponent(location.pathname.split("/").pop() || "").replace(/\.html$/i, "");
-  const code = body.dataset.countryCode || (COUNTRIES.find(item => item.slug === pathSlug) || {}).code;
-  const country = COUNTRIES.find(item => item.code === code);
-  if (!country) return;
 
-  const renderGenericPage = country => {
+  // Progressive enhancement safety:
+  // Content stays visible even when a data file is delayed, cached incorrectly,
+  // blocked, or JavaScript stops before the reveal animation is initialized.
+  const safetyStyle = document.createElement("style");
+  safetyStyle.textContent = `
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .reveal.reveal-pending { opacity: 0 !important; transform: translateY(24px) !important; }
+    .reveal.reveal-pending.is-visible { opacity: 1 !important; transform: none !important; }
+  `;
+  document.head.appendChild(safetyStyle);
+
+  const revealEverything = () => {
+    document.querySelectorAll(".reveal").forEach(element => {
+      element.classList.remove("reveal-pending");
+      element.classList.add("is-visible");
+    });
+  };
+
+  window.addEventListener("error", revealEverything);
+  window.addEventListener("unhandledrejection", revealEverything);
+
+  const pathSlug = decodeURIComponent(location.pathname.split("/").pop() || "")
+    .replace(/\.html$/i, "");
+  const countries = Array.isArray(window.COUNTRIES) ? window.COUNTRIES : [];
+  const requestedCode = body.dataset.countryCode || "";
+
+  const countryFromData = countries.find(item =>
+    item.code === requestedCode || item.slug === pathSlug
+  );
+
+  // Dedicated pages such as Sao Tome and Principe contain enough static HTML
+  // to remain usable even if the shared country-data scripts have not arrived yet.
+  const staticCountry = requestedCode ? {
+    code: requestedCode,
+    slug: pathSlug,
+    nameJa: document.querySelector(".country-nav-title")?.textContent?.trim() || requestedCode,
+    nameEn: document.querySelector(".country-en")?.textContent?.trim() || "",
+    continent: document.querySelector("[data-country-continent]")?.textContent?.trim() || ""
+  } : null;
+
+  const country = countryFromData || staticCountry;
+
+  const renderLoadError = () => {
+    body.innerHTML = `
+      <main class="content-wrap" style="padding-top:48px">
+        <section class="panel" style="text-align:center">
+          <div style="font-size:4rem" aria-hidden="true">🧭</div>
+          <h1>国データを読み込めませんでした</h1>
+          <p>通信やキャッシュの影響で、国データの読み込みが遅れている可能性があります。</p>
+          <p><a class="primary-button" href="../index.html">世界博士トップへ戻る</a></p>
+        </section>
+      </main>`;
+  };
+
+  if (!country) {
+    revealEverything();
+    renderLoadError();
+    return;
+  }
+
+  const renderGenericPage = selectedCountry => {
     document.body.innerHTML = `
       <header class="topbar">
         <a class="brand" href="../index.html" aria-label="世界博士トップへ戻る">🌍 <span>世界博士</span></a>
-        <div class="country-nav-title" data-country-name>${country.nameJa}</div>
+        <div class="country-nav-title" data-country-name>${selectedCountry.nameJa}</div>
         <button id="menu-button" class="menu-button" type="button" aria-expanded="false" aria-controls="nav-menu" aria-label="メニューを開く">☰</button>
         <nav id="nav-menu" class="nav-menu" aria-label="国ページのナビゲーション">
           <a href="#overview">基本情報</a>
@@ -23,12 +80,12 @@
       <main>
         <section class="country-hero">
           <div class="hero-content reveal">
-            <div class="flag-orb" aria-label="${country.nameJa}の国旗と国コード">
-              <div><div class="flag-emoji" data-country-flag aria-hidden="true"></div><div class="flag-code" data-country-code>${country.code}</div></div>
+            <div class="flag-orb" aria-label="${selectedCountry.nameJa}の国旗と国コード">
+              <div><div class="flag-emoji" data-country-flag aria-hidden="true"></div><div class="flag-code" data-country-code>${selectedCountry.code}</div></div>
             </div>
             <p class="eyebrow">WORLD DOCTOR COURSE</p>
-            <h1 data-country-name>${country.nameJa}</h1>
-            <p class="country-en" lang="en" data-country-en>${country.nameEn}</p>
+            <h1 data-country-name>${selectedCountry.nameJa}</h1>
+            <p class="country-en" lang="en" data-country-en>${selectedCountry.nameEn}</p>
             <p class="hero-copy">この国の地理・歴史・文化・暮らしを、物語を読みながら学ぶ博士コースです。</p>
             <div class="hero-actions">
               <a id="start-course" class="primary-button" href="#chapters">博士コースをのぞく</a>
@@ -40,10 +97,10 @@
           <section id="overview" class="panel reveal" aria-labelledby="overview-heading">
             <h2 id="overview-heading">基本情報</h2>
             <div class="basic-grid">
-              <div class="info-card"><strong>国名</strong><span data-country-name>${country.nameJa}</span></div>
-              <div class="info-card"><strong>英語名</strong><span lang="en" data-country-en>${country.nameEn}</span></div>
-              <div class="info-card"><strong>国コード</strong><span data-country-code>${country.code}</span></div>
-              <div class="info-card"><strong>地域</strong><span data-country-continent>${country.continent}</span></div>
+              <div class="info-card"><strong>国名</strong><span data-country-name>${selectedCountry.nameJa}</span></div>
+              <div class="info-card"><strong>英語名</strong><span lang="en" data-country-en>${selectedCountry.nameEn}</span></div>
+              <div class="info-card"><strong>国コード</strong><span data-country-code>${selectedCountry.code}</span></div>
+              <div class="info-card"><strong>地域</strong><span data-country-continent>${selectedCountry.continent}</span></div>
             </div>
           </section>
           <section id="chapters" class="panel coming-soon reveal" aria-labelledby="chapters-heading">
@@ -87,17 +144,29 @@
       return {};
     }
   };
-  const saveProgress = progress => localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-  const flagEmoji = value => [...value].map(char => String.fromCodePoint(127397 + char.charCodeAt(0))).join("");
+
+  const saveProgress = progress => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    } catch {
+      // Storage may be disabled; the page itself should continue working.
+    }
+  };
+
+  const flagEmoji = value => [...value].map(char =>
+    String.fromCodePoint(127397 + char.charCodeAt(0))
+  ).join("");
 
   const setText = (selector, value) => {
-    document.querySelectorAll(selector).forEach(element => { element.textContent = value; });
+    document.querySelectorAll(selector).forEach(element => {
+      element.textContent = value;
+    });
   };
 
   setText("[data-country-name]", country.nameJa);
-  setText("[data-country-en]", country.nameEn);
+  setText("[data-country-en]", country.nameEn || "");
   setText("[data-country-code]", country.code);
-  setText("[data-country-continent]", country.continent);
+  setText("[data-country-continent]", country.continent || "");
   setText("[data-country-flag]", flagEmoji(country.code));
   document.title = `${country.nameJa}博士コース | 世界博士`;
 
@@ -106,18 +175,18 @@
   const progressTrack = document.getElementById("country-progress-track");
 
   const renderProgress = () => {
-    const state = readProgress()[code] || "not-started";
+    const state = readProgress()[country.code] || "not-started";
     const values = { "not-started": 0, learning: 45, completed: 100 };
     const labels = { "not-started": "未挑戦", learning: "学習中", completed: "博士認定済み" };
-    if (progressLabel) progressLabel.textContent = labels[state];
-    if (progressFill) progressFill.style.width = `${values[state]}%`;
-    if (progressTrack) progressTrack.setAttribute("aria-valuenow", String(values[state]));
+    if (progressLabel) progressLabel.textContent = labels[state] || labels["not-started"];
+    if (progressFill) progressFill.style.width = `${values[state] ?? 0}%`;
+    if (progressTrack) progressTrack.setAttribute("aria-valuenow", String(values[state] ?? 0));
     body.dataset.progressState = state;
   };
 
   const updateState = state => {
     const progress = readProgress();
-    progress[code] = state;
+    progress[country.code] = state;
     saveProgress(progress);
     renderProgress();
     if (state === "completed") launchConfetti();
@@ -126,10 +195,11 @@
   const startButton = document.getElementById("start-course");
   if (startButton) {
     startButton.addEventListener("click", event => {
-      if (startButton.tagName === "A" && startButton.getAttribute("href")?.startsWith("#")) event.preventDefault();
-      const current = readProgress()[code] || "not-started";
+      const href = startButton.getAttribute("href") || "#chapters";
+      if (startButton.tagName === "A" && href.startsWith("#")) event.preventDefault();
+      const current = readProgress()[country.code] || "not-started";
       if (current === "not-started") updateState("learning");
-      const target = document.querySelector(startButton.getAttribute("href") || "#chapters");
+      const target = document.querySelector(href);
       if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }
@@ -153,27 +223,36 @@
 
   document.querySelectorAll("details.chapter").forEach(detail => {
     detail.addEventListener("toggle", () => {
-      if (detail.open && (readProgress()[code] || "not-started") === "not-started") updateState("learning");
+      if (detail.open && (readProgress()[country.code] || "not-started") === "not-started") {
+        updateState("learning");
+      }
     });
   });
 
+  const revealElements = [...document.querySelectorAll(".reveal")];
   const observer = "IntersectionObserver" in window
     ? new IntersectionObserver(entries => entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add("is-visible");
           observer.unobserve(entry.target);
         }
-      }), { threshold: .12 })
+      }), { threshold: 0.12 })
     : null;
-  document.querySelectorAll(".reveal").forEach(element => {
-    if (observer) observer.observe(element);
-    else element.classList.add("is-visible");
+
+  revealElements.forEach(element => {
+    if (observer) {
+      element.classList.add("reveal-pending");
+      observer.observe(element);
+    } else {
+      element.classList.add("is-visible");
+    }
   });
 
   document.querySelectorAll("a[href]").forEach(link => {
     link.addEventListener("click", event => {
       const href = link.getAttribute("href") || "";
-      if (href.startsWith("#") || href.startsWith("mailto:") || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (href.startsWith("#") || href.startsWith("mailto:") ||
+          event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
       body.classList.add("page-leaving");
       window.setTimeout(() => { window.location.href = link.href; }, 160);
@@ -189,7 +268,7 @@
       const piece = document.createElement("span");
       piece.style.left = `${Math.random() * 100}%`;
       piece.style.background = colors[index % colors.length];
-      piece.style.animationDelay = `${Math.random() * .8}s`;
+      piece.style.animationDelay = `${Math.random() * 0.8}s`;
       piece.style.animationDuration = `${2.2 + Math.random() * 1.8}s`;
       layer.appendChild(piece);
     }
@@ -201,5 +280,6 @@
     body.classList.remove("page-leaving");
     renderProgress();
   });
+
   renderProgress();
 })();
